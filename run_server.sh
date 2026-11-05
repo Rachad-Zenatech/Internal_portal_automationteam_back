@@ -12,5 +12,5 @@ else
     PYTHON_CMD="python3"
 fi
 
-PORT="${PORT:-8900}"
+PORT="${PORT:-8011}"
 exec $PYTHON_CMD -m uvicorn server:app --host 0.0.0.0 --port "$PORT" --timeout-graceful-shutdown 2
