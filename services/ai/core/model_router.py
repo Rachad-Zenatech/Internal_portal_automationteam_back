@@ -26,9 +26,9 @@ from services.ai.core.gemini_service import (
 TIERS = ("LIGHT", "STANDARD", "HEAVY")
 # HEAVY defaults to flash because Pro models have no free-tier allowance; on a paid key, put a Pro model first.
 _TIER_DEFAULTS: Dict[str, str] = {
-    "LIGHT": "gemini-3.1-flash-lite,gemini-3.5-flash-lite",
-    "STANDARD": "gemini-3-flash-preview,gemini-3.1-flash-lite,gemini-3.5-flash-lite",
-    "HEAVY": "gemini-3-flash-preview,gemini-3.1-flash-lite",
+    "LIGHT": "gemini-3.1-flash-lite,gemini-3.1-flash-lite-preview,gemini-3.5-flash-lite",
+    "STANDARD": "gemini-3.1-flash-lite,gemini-3.5-flash-lite,gemini-3-flash-preview",
+    "HEAVY": "gemini-3-flash-preview,gemini-3.1-pro-preview,gemini-3.1-flash-lite",
 }
 _FEATURE_TIERS: Dict[str, str] = {
     "CHAT": "LIGHT",
