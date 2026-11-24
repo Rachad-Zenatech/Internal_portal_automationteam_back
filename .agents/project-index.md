@@ -23,7 +23,8 @@ For function and route definitions with their line numbers, grep `.agents/code-m
 - services/ai/core/model_router.py (85 lines) - Model routing: picks which Gemini models a request tries first, by feature and by how demanding the request is.
 - services/ai/core/semantic_cache.py (205 lines) - Semantic cache: reuses an earlier AI answer when a new question means the same thing, so repeated questions don't spend Gemini quota.
 - services/ai/observability/ai_guardrails.py (249 lines) - AI guardrails: screening what goes into the model and redacting personal data from what comes out.
-- services/ai/observability/ai_observability.py (368 lines) - AI observability: a trace span for every model call, embedding, retrieval, cache lookup, guard check and tool call, plus a prompt log of ...
+- services/ai/observability/ai_observability.py (395 lines) - AI observability: a trace span for every model call, embedding, retrieval, cache lookup, guard check and tool call, plus a prompt log of ...
+- services/ai/observability/ai_overview_service.py (331 lines) - Combined AI health, feature-to-core mapping, and usage overview for System & Security.
 - services/ai/observability/ai_usage_service.py (141 lines) - AI Usage Limits Caps how often Gemini runs, so one person (or a stuck loop) can't use up the provider quota or run up cost.
 - services/microsoft_graph/graph_service.py (420 lines) - Microsoft Graph API client for employee profile sync.
 - services/microsoft_graph/graph_sync_job.py (132 lines) - Periodic Microsoft Graph sync for already-known employees.
@@ -42,6 +43,6 @@ For function and route definitions with their line numbers, grep `.agents/code-m
 - tools/notifications/notification_router.py (81 lines) - notification router (notifications)
 - tools/shared/auth_router.py (312 lines) - auth router (shared)
 - tools/shared/log_router.py (74 lines) - log router (shared)
-- tools/shared/observability.py (75 lines) - observability (shared)
+- tools/shared/observability.py (95 lines) - observability (shared)
 - tools/shared/rbac_router.py (204 lines) - rbac router (shared)
 - tools/shared/search.py (177 lines) - Static system pages for quick navigation search with explicit permission codes
