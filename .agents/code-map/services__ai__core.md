@@ -4,8 +4,27 @@
 
 Each symbol shows its start line (`L<n>`); read from there to the next symbol's line, not the whole file.
 
+## services/ai/core/ai_types.py (92 lines) - Native AI request/content DTOs replacing google.genai.types for AWS Bedrock.
+- `Blob` (class) L7
+- `FunctionCall` (class) L12
+- `FunctionResponse` (class) L17
+- `FileData` (class) L22
+- `Part` (class) L27
+    - `from_bytes` (def) L36
+    - `from_text` (def) L40
+    - `from_function_response` (def) L44
+    - `from_uri` (def) L48
+- `Content` (class) L52
+- `HttpRetryOptions` (class) L57
+- `HttpOptions` (class) L61
+- `AutomaticFunctionCallingConfig` (class) L66
+- `GenerateContentConfig` (class) L70
+- `File` (class) L81
+- `Candidate` (class) L85
+- `GenerateContentResponse` (class) L89
+
 ## services/ai/core/assistant_chat_service.py (254 lines) - Assistant chat: answers questions about the portal, streamed as SSE.
-- `_get_client` (def) L57
+- `_get_client` (def) L56
 - `_sse` (def) L64
 - `PreparedChat` (class) L69
     - `blocked` (def) L80
@@ -16,6 +35,51 @@ Each symbol shows its start line (`L<n>`); read from there to the next symbol's 
 - `_stream_round` (def) L132 - One model turn, streamed.
 - `stream` (def) L186 - The SSE events for a prepared chat.
 
+## services/ai/core/bedrock_service.py (466 lines) - AWS Bedrock AI Service Adapter.
+- `is_expensive_model` (def) L27
+- `get_bedrock_cheap_model` (def) L34
+- `get_bedrock_heavy_model` (def) L44
+- `_resolve_bedrock_model` (def) L57
+- `is_bedrock_enabled` (def) L66 - Return True if AWS Bedrock credentials and profile ID are configured.
+- `get_bedrock_profile_id` (def) L73
+- `get_bedrock_region` (def) L77
+- `get_bedrock_key` (def) L81
+- `has_ai_key` (def) L85 - Return True if AWS Bedrock is configured.
+- `clean_json_fences` (def) L90 - Strip markdown code fences from JSON output so json.loads succeeds.
+- `BedrockPart` (class) L99
+    - `__init__` (def) L100
+- `BedrockContent` (class) L105
+    - `__init__` (def) L106
+- `BedrockCandidate` (class) L110
+    - `__init__` (def) L111
+- `BedrockUsageMetadata` (class) L115
+    - `__init__` (def) L116
+- `BedrockResponse` (class) L121 - Emulates google.genai.types.GenerateContentResponse for downstream services.
+    - `__init__` (def) L124
+    - `text` (def) L135
+- `BedrockStreamChunk` (class) L139 - Single streamed chunk matching the structure expected by assistant_chat_service.
+    - `__init__` (def) L142
+- `_extract_text_and_media` (def) L149 - Convert Gemini contents (strings, Parts, Contents, dicts) into Bedrock content blocks.
+    - `process_item` (def) L153
+- `_build_converse_params` (def) L243 - Translate model, contents, and config into boto3 converse parameters.
+- `BedrockModels` (class) L294 - Mimics client.models on Google GenAI SDK.
+    - `__init__` (def) L297
+    - `generate_content` (def) L300
+- `BedrockStreamIterator` (class) L364
+    - `__init__` (def) L365
+    - `__aiter__` (def) L368
+    - `_iter` (def) L371
+- `BedrockAioModels` (class) L382 - Mimics client.aio.models for streaming calls.
+    - `__init__` (def) L385
+    - `generate_content_stream` (def) L388
+- `BedrockAio` (class) L424
+    - `__init__` (def) L425
+- `BedrockClientAdapter` (class) L429 - Adapter implementing the client interface used by services calling Gemini.
+    - `__init__` (def) L432
+    - `get_boto_client` (def) L437
+- `get_bedrock_client` (def) L456
+- `get_ai_client` (def) L463 - Return Bedrock client if enabled, else None.
+
 ## services/ai/core/gemini_service.py (128 lines) - gemini service (ai core)
 - `_normalize_ai_model_name` (def) L10 - Normalizes a model name from the environment variable list
 - `without_retired` (def) L41 - Return models that are not retired, preserving order (or original list if all are retired).
@@ -23,24 +87,22 @@ Each symbol shows its start line (`L<n>`); read from there to the next symbol's 
 - `is_rotatable_model_error` (def) L65 - Determines if a given exception represents a rate limit, quota exhaustion,
 - `generate_content_with_fallback` (def) L86 - A robust wrapper around client.models.generate_content that automatically
 
-## services/ai/core/model_router.py (85 lines) - Model routing: picks which Gemini models a request tries first, by feature and by how demanding the request is.
-- `Route` (class) L44
-- `fallback_models` (def) L50 - Every configured Gemini model (GEMINI_AVAILABLE_MODELS), retired ones left out, in priority order.
-- `enabled` (def) L55
-- `tier_models` (def) L59
-- `base_tier` (def) L64
-- `route` (def) L69 - The models to try, in order, for this request, and why that tier was chosen.
+## services/ai/core/model_router.py (87 lines) - Model routing: picks the cheapest suitable model for easy work, and stronger models when needed.
+- `Route` (class) L33
+- `enabled` (def) L39
+- `tier_models` (def) L43
+- `base_tier` (def) L55
+- `route` (def) L60 - The models to try, in order, for this request, and why that tier was chosen.
 
-## services/ai/core/semantic_cache.py (205 lines) - Semantic cache: reuses an earlier AI answer when a new question means the same thing, so repeated questions don't spend Gemini quota.
-- `_env_float` (def) L39
-- `is_enabled` (def) L52
-- `Hit` (class) L58
-- `Lookup` (class) L66 - What a lookup learned, so storing the answer afterwards doesn't embed the question again.
-- `normalise` (def) L75
-- `numbers` (def) L80
-- `_gemini_client` (def) L87
-- `_embed` (def) L94
-- `lookup` (def) L109 - A cached answer to the question, if any.
-- `_lookup` (def) L123
-- `store` (def) L173 - Cache an answer for the question of an earlier lookup.
-- `clear` (def) L197 - Drop cached answers (one feature's, or all) when what they were built from has changed.
+## services/ai/core/semantic_cache.py (181 lines) - Semantic cache: reuses an earlier AI answer when a new question means the same thing, so repeated questions don't spend Gemini quota.
+- `_env_float` (def) L37
+- `is_enabled` (def) L50
+- `Hit` (class) L56
+- `Lookup` (class) L64 - What a lookup learned, so storing the answer afterwards doesn't embed the question again.
+- `normalise` (def) L73
+- `numbers` (def) L78
+- `_embed` (def) L82
+- `lookup` (def) L85 - A cached answer to the question, if any.
+- `_lookup` (def) L99
+- `store` (def) L149 - Cache an answer for the question of an earlier lookup.
+- `clear` (def) L173 - Drop cached answers (one feature's, or all) when what they were built from has changed.
